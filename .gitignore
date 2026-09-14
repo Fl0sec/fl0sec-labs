@@ -1,0 +1,21 @@
+# Build output
+build/
+*.exe
+*.exe.disabled
+*.obj
+*.pdb
+*.zip
+
+# Target and analysis files
+*.sys
+*.sys.disabled
+*.i64
+*.id0
+*.id1
+*.id2
+*.nam
+*.til
+
+# Python
+__pycache__/
+*.py[cod]

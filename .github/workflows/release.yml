@@ -1,0 +1,38 @@
+name: Release lab
+
+on:
+  push:
+    tags:
+      - "kernel-anti-cheat-ctf-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-2022
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build trainer
+        shell: pwsh
+        run: .\labs\kernel-anti-cheat-ctf\build.ps1
+
+      - name: Package release
+        shell: pwsh
+        run: |
+          $lab = "labs\kernel-anti-cheat-ctf"
+          $stage = Join-Path $env:RUNNER_TEMP "kernel-anti-cheat-ctf"
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          Copy-Item (Join-Path $lab "build\TBMTrainer.exe") $stage
+          Copy-Item (Join-Path $lab "README.md") $stage
+          Compress-Archive -Path (Join-Path $stage "*") -DestinationPath "kernel-anti-cheat-ctf.zip"
+          $hash = (Get-FileHash "kernel-anti-cheat-ctf.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  kernel-anti-cheat-ctf.zip" | Set-Content -Encoding ascii "SHA256SUMS"
+
+      - name: Create GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" kernel-anti-cheat-ctf.zip SHA256SUMS --generate-notes --verify-tag
